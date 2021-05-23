@@ -1,0 +1,166 @@
+<project name="businesslogic.wikipedia" default="cleandist" basedir=".">
+
+	<!-- Load system environment variables defined in batch file -->
+	<property environment="env" />
+	
+	<!-- Use system environment variables -->
+	
+	<!-- Set project variables -->
+	<property name="tenantid" value="${tenantid}" />
+	<property name="accountid" value="${accountid}" />
+	<property name="pluginid" value="de.citunius.generic.wikipedia" />
+	<property name="project.version" value="1.0.0"/>
+	<property name="project.provider" value="Citunius GmbH"/>
+	<property name="project.name" value="businesslogic.wikipedia" />
+	<property name="project.source.dir" value="..\..\source\${project.name}" />
+	<property name="project.git.dir" value="." />
+	
+	<property name="build.zipname" value="${tenantid}.${accountid}.${pluginid}-${project.version}.zip" />	
+	<property name="builder.staging" value="..\..\staging" />
+	<property name="builder.distrib" value="..\..\distrib" />
+	<property name="project.staging.dir" value="..\..\staging\${project.name}" />
+	<property name="project.lib.dir" value="..\${project.name}\lib" />	
+	<property name="build.dir" value="${project.staging.dir}/bin" />
+	<property name="build.dir.classes" value="${project.staging.dir}/classes" />
+	<property name="build.dir.target.classes" value="${project.staging.dir}/target/classes" />
+	<!-- Include required JAR file: BusinessLogicApi and BusinessLogicApi.Messenger -->
+	<property name="businesslogicapi.libs" value="..\..\bl_libs" />
+	
+	<!-- Set timestamp format -->
+	<tstamp>
+		<format property="BUILD_YEAR" pattern="yyyy" />
+		<format property="BUILD_YEAR_SHORT" pattern="yy" />
+		<format property="BUILD_MONTH" pattern="MM" />
+		<format property="BUILD_DAY" pattern="dd" />
+		<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+	</tstamp>
+	
+	<!-- Debug Info -->
+	<echo message="Started: ${TODAY}" />
+	<echo message="Passed Environment Variable: JAVA_HOME=${env.JAVA_HOME}\lib" />
+	<echo message="Passed Environment Variable: tenantid=${tenantid}" />
+	<echo message="Passed Environment Variable: accountid=${accountid}" />
+	<echo message="Project Version: ${project.version}" />
+	<echo message="Project Name: ${project.name}" />
+	<echo message="Project Zip Output File: ${build.zipname}" />
+	
+	<path id="master-classpath">
+		<pathelement path="${build.dir}" />
+		<fileset dir="${project.lib.dir}">
+			<include name="*.jar" />
+		</fileset>		
+		
+		<fileset dir="${businesslogicapi.libs}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	
+	<!-- Copy GIT project directory code to source dir -->
+	<target name="copyGitProject">
+		<copy todir="${project.source.dir}">
+			<fileset dir="${project.git.dir}" />
+		</copy>
+	</target>
+	
+	<!-- Clean (Delete everything in the package structure starting with test.*) -->
+	<target name="clean">
+		<echo message="Removing old directory structure..." />
+		<delete dir="${project.staging.dir}" />
+		<delete dir="${project.source.dir}\src\test" />
+	</target>
+
+	<!-- Create directories in DEPLOY DIR -->
+	<target name="mkDeployDir">
+		<!-- <mkdir dir="${build.dir}/bin" /> -->
+		<mkdir dir="${build.dir.classes}" />
+		<mkdir dir="${build.dir.target.classes}" />
+		<mkdir dir="${project.staging.dir}/lib" />
+	</target>
+	
+	<!-- Update logging.properties file -->
+	<target name="updateLoggingFile">
+		<echo message="Updating logging.properties file ..." />
+		<replace file="resources/logging.properties" token="@Logging-Filename@" value="${tenantid}.${accountid}.${pluginid}.log"/>
+	</target>
+	
+	<!-- Update MANIFEST.MF file -->
+	<target name="updateManifestFile">
+		<echo message="Updating MANIFEST.MF file ..." />
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Built-By@" value="${user.name}"/>		
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Build-Jdk@" value="${java.version}"/>
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Created-By@" value="Apache Ant ${ant.version}"/>
+		<!-- <replace file="${project.source.dir}/classes/MANIFEST.MF" token="<Implementation-Version>" value="${project.version}"/> -->
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Plugin-Version@" value="${project.version}"/>
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Specification-Version@" value="${project.version}"/>
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Plugin-Provider@" value="${project.provider}"/>
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Project-Name@" value="${project.name}"/>
+		<replace file="${project.source.dir}/classes/MANIFEST.MF" token="@Plugin-Id@" value="${pluginid}"/>
+	</target>
+	
+	<!-- Update plugin.properties file -->
+	<target name="updatePluginPropertiesFile">
+		<echo message="Updating plugin.properties file ..." />
+		<replace file="${project.source.dir}/plugin.properties" token="@plugin.version@" value="${project.version}"/>
+		<replace file="${project.source.dir}/plugin.properties" token="@plugin.provider@" value="${project.provider}"/>	
+		<replace file="${project.source.dir}/plugin.properties" token="@plugin.id@" value="${pluginid}"/>		
+	</target>
+	
+	<!--Compile source code -->
+	<target name="compile">
+		<echo message="Compiling ..." />		
+		<javac encoding="utf-8" includeantruntime="false" classpathref="master-classpath" srcdir="${project.source.dir}/src" debug="true" destdir="${build.dir.classes}" />
+		<copy todir="${build.dir.target.classes}">
+			<fileset dir="${build.dir.classes}" />
+		</copy>	
+	</target>
+
+	<!-- Copy directories in staging directory -->
+	<target name="copy">
+		<copy todir="${project.staging.dir}/lib">
+			<fileset dir="${project.source.dir}/lib" />
+		</copy>
+		
+		<!-- Remove unwanted libs which are already available on BBP (otherwise it will cause loading issues)-->
+		<echo message="Removing unwanted libs from Business Logic (used for development only)"/>
+		<delete file="${project.staging.dir}/lib/log4j-1.2.15.jar" failonerror="false" />
+		<delete file="${project.staging.dir}/lib/de.citunius.businesslogic.api-1.0.0.jar" failonerror="false" />
+		
+		<copy todir="${project.staging.dir}/resources">
+			<fileset dir="${project.source.dir}/resources" />
+		</copy>
+		<copy todir="${project.staging.dir}/classes/META-INF">
+			<fileset dir="${project.source.dir}/classes" />
+		</copy>	
+		<copy todir="${project.staging.dir}/target/classes/META-INF">
+			<fileset dir="${project.source.dir}/classes" />
+		</copy>			
+		<copy file="${project.source.dir}/MANIFEST.MF" toDir="${project.staging.dir}/" />
+		<copy file="${project.source.dir}/plugin.properties" toDir="${project.staging.dir}/" />
+		
+		<!-- Configure business logic plugin for custom tenantid and accountid -->
+		<replace file="${project.staging.dir}/plugin.properties" token="${pluginid}" value="${tenantid}.${accountid}.${pluginid}" />
+		<replace file="${project.staging.dir}/classes/META-INF/MANIFEST.MF" token="${pluginid}" value="${tenantid}.${accountid}.${pluginid}" />
+		<replace file="${project.staging.dir}/target/classes/META-INF/MANIFEST.MF" token="${pluginid}" value="${tenantid}.${accountid}.${pluginid}" />
+	</target>
+
+	<!-- Create ZIP file -->
+	<target name="zipTarget">
+		<zip destfile="${builder.staging}\${build.zipname}" basedir="${project.staging.dir}"/>		
+	</target>
+
+	<target name="distrib">
+		<mkdir dir="${builder.distrib}" />	
+		<copy file="${builder.staging}\${build.zipname}" toDir="${builder.distrib}/" />			
+	</target>
+	
+	<!-- Cleanup (Delete everything in staging and source dir) -->
+	<target name="cleanup">
+		<echo message="Cleaning staging directory ..." />
+		<delete dir="${project.source.dir}\" />
+		<delete dir="${builder.staging}\" />
+	</target>
+	
+	<!-- CLEANDIST -->
+	<target name="cleandist" depends="copyGitProject, clean, mkDeployDir, updateLoggingFile, updateManifestFile, updatePluginPropertiesFile, compile, copy, zipTarget, distrib, cleanup"></target>
+
+</project>

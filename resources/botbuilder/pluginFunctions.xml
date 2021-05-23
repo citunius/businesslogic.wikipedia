@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plugin>
+<!-- Business Bot Builder Plugin Function Descriptor for the Business Bot 
+	Platform -->
+<Plugin>
+	<PluginFunction>
+		<FunctionName>getArticle</FunctionName>
+		<FunctionDescription>Search for a Wikipedia article</FunctionDescription>
+		<ExpectedParameters>1</ExpectedParameters>
+		<PluginFunctionParameter>
+			<SequenceId>1</SequenceId>
+			<ParameterName>searchKeyword</ParameterName>
+			<DefaultValue>none</DefaultValue>
+			<ExampleValue>Mainz</ExampleValue>
+			<Description>Keyword to perform the Wikipedia search</Description>
+		</PluginFunctionParameter>		
+	</PluginFunction>
+	<PluginFunction>
+		<FunctionName>getRandomArticle</FunctionName>
+		<FunctionDescription>Get a Wikipedia random article</FunctionDescription>
+		<ExpectedParameters>0</ExpectedParameters>
+	</PluginFunction>
+	<PluginFunction>
+		<FunctionName>getWikiLogo</FunctionName>
+		<FunctionDescription>Get the Wikipedia logo</FunctionDescription>
+		<ExpectedParameters>0</ExpectedParameters>
+	</PluginFunction>
+</Plugin>

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Implementation-Title: @Project-Name@
+Implementation-Version: @Plugin-Version@
+Plugin-Id: @Plugin-Id@
+Built-By: @Built-By@
+Created-By: @Created-By@
+Plugin-Version: @Plugin-Version@
+Plugin-Provider: @Plugin-Provider@
+Plugin-Class: de.citunius.businesslogic.wikipedia.plugin.PluginClient
+Plugin-Dependencies: 
+Implementation-Vendor-Id: de.citunius.plugins
+Build-Jdk: @Build-Jdk@
+Specification-Title: @Project-Name@
+Specification-Version: @Specification-Version@
+Archiver-Version: Plexus Archiver
